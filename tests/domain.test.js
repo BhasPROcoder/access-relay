@@ -1,0 +1,40 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { createState, segmentStatus, journeyStatus, applyAction } from '../src/domain.js';
+const data = JSON.parse(await readFile(new URL('../data/journeys.json', import.meta.url)));
+const now = Date.UTC(2026, 9, 27);
+test('fixtures yield blocked, stale and current journeys', () => {
+  const state = createState(data, now);
+  assert.deepEqual(data.journeys.map(j => journeyStatus(j, state, now)), ['blocked', 'stale', 'clear']);
+});
+test('clear evidence expires at the boundary; missing segments remain unknown', () => {
+  const state = createState(data, now);
+  assert.equal(segmentStatus(state.segments.gate, state.segments.gate.expiresAt), 'stale');
+  assert.equal(journeyStatus({ segments: ['missing'] }, state, now), 'unknown');
+  assert.equal(journeyStatus({ segments: [] }, state, now), 'unknown');
+});
+test('aging does not erase a known barrier', () => {
+  assert.equal(segmentStatus(createState(data, now).segments['library-ramp'], now + 999999999), 'blocked');
+});
+test('repair claim does not close a barrier and claimant cannot verify', () => {
+  const original = createState(data, now);
+  const claimed = applyAction(original, { type: 'claim', segmentId: 'library-ramp', actor: 'staff' }, now);
+  assert.equal(segmentStatus(claimed.segments['library-ramp'], now), 'pending');
+  assert.equal(original.segments['library-ramp'].claim, null);
+  assert.throws(() => applyAction(claimed, { type: 'recheck', segmentId: 'library-ramp', actor: 'staff', passed: true }, now));
+  assert.throws(() => applyAction(claimed, { type: 'observe', segmentId: 'library-ramp', actor: 'reviewer' }, now));
+});
+test('failed recheck reopens; successful recheck creates expiring observation', () => {
+  const claimed = applyAction(createState(data, now), { type: 'claim', segmentId: 'library-ramp', actor: 'staff' }, now);
+  const failed = applyAction(claimed, { type: 'recheck', segmentId: 'library-ramp', actor: 'reviewer', passed: false }, now);
+  assert.equal(segmentStatus(failed.segments['library-ramp'], now), 'blocked');
+  const passed = applyAction(claimed, { type: 'recheck', segmentId: 'library-ramp', actor: 'reviewer', passed: true }, now);
+  assert.equal(segmentStatus(passed.segments['library-ramp'], now), 'clear');
+  assert.equal(segmentStatus(passed.segments['library-ramp'], now + 8 * 3600000), 'stale');
+  assert.equal(journeyStatus(data.journeys[0], passed, now), 'unknown');
+});
+test('invalid actors, segments and actions are rejected', () => {
+  const state = createState(data, now);
+  for (const action of [{ type: 'report', segmentId: 'missing', actor: 'reporter' }, { type: 'report', segmentId: 'gate', actor: 'admin' }, { type: 'delete', segmentId: 'gate', actor: 'staff' }, { type: 'claim', segmentId: 'gate', actor: 'staff' }]) assert.throws(() => applyAction(state, action, now));
+});

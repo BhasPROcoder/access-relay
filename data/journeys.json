@@ -1,0 +1,21 @@
+{
+  "synthetic": true,
+  "notice": "Fictional campus and observations. Not navigation or safety guidance.",
+  "segments": [
+    { "id": "gate", "name": "Main gate to courtyard", "detail": "Step-free path observed in this fictional scenario.", "status": "clear", "ageHours": 1, "validHours": 24 },
+    { "id": "library-ramp", "name": "Library ramp", "detail": "A delivery trolley obstructs the ramp.", "status": "blocked", "ageHours": 1, "validHours": 8 },
+    { "id": "library-door", "name": "Library entrance", "detail": "Doorway observation is current; no dimensions are certified.", "status": "clear", "ageHours": 2, "validHours": 24 },
+    { "id": "library-desk", "name": "Library service desk", "detail": "No observation has been recorded.", "status": "unknown", "ageHours": 0, "validHours": 24 },
+    { "id": "admin-path", "name": "Courtyard to administration", "detail": "Path observation is older than its review window.", "status": "clear", "ageHours": 30, "validHours": 24 },
+    { "id": "admin-lift", "name": "Administration lift", "detail": "Lift operation requires a fresh check on the day.", "status": "clear", "ageHours": 1, "validHours": 4 },
+    { "id": "admin-counter", "name": "Documents counter", "detail": "Counter observation is current in this fictional scenario.", "status": "clear", "ageHours": 1, "validHours": 24 },
+    { "id": "support-path", "name": "Courtyard to student support", "detail": "A step-free path was observed.", "status": "clear", "ageHours": 1, "validHours": 24 },
+    { "id": "support-door", "name": "Student support entrance", "detail": "Entrance was observed with the door open.", "status": "clear", "ageHours": 1, "validHours": 8 },
+    { "id": "support-desk", "name": "Student support desk", "detail": "Service desk observation is current.", "status": "clear", "ageHours": 1, "validHours": 8 }
+  ],
+  "journeys": [
+    { "id": "library", "name": "Visit the library", "purpose": "Collect a book from the service desk", "owner": "Library facilities team (fictional)", "segments": ["gate", "library-ramp", "library-door", "library-desk"] },
+    { "id": "administration", "name": "Collect a document", "purpose": "Reach the administration counter", "owner": "Administration facilities team (fictional)", "segments": ["gate", "admin-path", "admin-lift", "admin-counter"] },
+    { "id": "student-support", "name": "Meet student support", "purpose": "Visit the ground-floor support desk", "owner": "Student support team (fictional)", "segments": ["gate", "support-path", "support-door", "support-desk"] }
+  ]
+}

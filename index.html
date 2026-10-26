@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#173c35">
+  <title>AccessRelay — Every step matters</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./src/styles.css">
+  <script type="module" src="./src/app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#journey">Skip to journey</a>
+  <header><a class="brand" href="./">↗ AccessRelay</a><span class="edition">CAMPUS ACCESS · PROTOTYPE</span><span id="connection">Checking connection</span></header>
+  <main>
+    <section class="hero"><p class="eyebrow">INFORMATION FOR THE WHOLE VISIT</p><h1>A clear picture.<br>Every step of the way.</h1><p>Check the observations behind a service journey. See what needs attention and whether a reported repair has been rechecked.</p></section>
+    <aside class="notice"><strong>Synthetic demonstration.</strong> These places and observations are fictional. This is not navigation, a safety guarantee or an accessibility certification. Demo actors are simulated, not authenticated.</aside>
+    <div class="workspace">
+      <aside class="sidebar"><h2>Where are you going?</h2><nav id="journeys" aria-label="Choose a service"></nav><div class="help"><h3>Information can change.</h3><p>A current observation describes a moment in time. Confirm uncertain details with the facility before travelling.</p><button id="reset" class="subtle">Reset demo</button></div></aside>
+      <section id="journey" tabindex="-1"><div id="summary"></div><div class="toolbar"><label for="actor">Demo actor <select id="actor"><option value="reporter">Visitor / reporter</option><option value="staff">Facilities staff</option><option value="reviewer">Independent reviewer</option></select></label><button id="print">Print journey</button></div><p class="small">Actions change this browser's local demo only. Independent identity is not enforced.</p><p id="feedback" role="status" aria-live="polite"></p><ol id="segments" class="segments"></ol></section>
+    </div>
+    <section class="activity"><h2>What changed</h2><p>Local demo activity. No personal information is collected.</p><ol id="events"></ol></section>
+  </main>
+  <footer><span>AccessRelay · Open-source prototype</span><span>Observe → Report → Repair → Recheck</span></footer>
+</body>
+</html>
