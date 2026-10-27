@@ -13,5 +13,4 @@ submission/private/
 *.mp4
 *.mov
 !submission/assets/*.pdf
-!submission/assets/*.mp4
-!submission/assets/*.mov
+submission/VIDEO_SCRIPT.md

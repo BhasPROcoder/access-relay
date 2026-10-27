@@ -73,7 +73,6 @@ access-relay/
 ├── submission/
 │   ├── CHECKLIST.md           # public packaging checklist, no IDs
 │   ├── DEMO_SCRIPT.md
-│   ├── VIDEO_SCRIPT.md        # three-minute recording plan
 │   └── assets/                # draft deck and final deliverable location
 ├── tests/domain.test.js
 ├── index.html
@@ -94,7 +93,7 @@ We're not the first to work on this. [Sugamya Bharat](https://crcsundernagar.nic
 
 ## Submission readiness
 
-This code is a starting point, not a finished competition entry. A draft pitch deck and video script are included, but state and campus details, team information, official-template compliance, real validation, the signed declaration and the recorded video still need to be completed and checked separately. Use the [submission checklist](submission/CHECKLIST.md) for that. **Never commit student IDs, government IDs, signatures, completed declarations or credentials.**
+This code is a starting point, not a finished competition entry. A draft pitch deck is included, but state and campus details, team information, official-template compliance, real validation, the signed declaration and the recorded video still need to be completed and checked separately. Video working files remain local and are intentionally excluded from Git. Use the [submission checklist](submission/CHECKLIST.md) for that. **Never commit student IDs, government IDs, signatures, completed declarations or credentials.**
 
 ## Attribution and license
 
