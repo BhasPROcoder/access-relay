@@ -41,6 +41,8 @@ With npm available, equivalent shortcuts are `npm start`, `npm test`, and `npm r
 - A campus-priority banner that identifies which current barrier affects the most journeys, without claiming that one repair will restore an otherwise uncertain journey.
 - A collapsed demo panel for previewing evidence expiry, plus an overdue flag for repair claims awaiting recheck for more than four hours.
 - A verdict-first journey summary explaining the uncertain checkpoints, next actions and responsible owner.
+- An optional comfort mode with larger text, wider spacing and reduced motion.
+- A downloadable JSON copy of accepted browser-local verification events, clearly labelled as simulated and not tamper-proof.
 
 ## Try the demo
 
@@ -70,7 +72,9 @@ access-relay/
 │   └── styles.css
 ├── submission/
 │   ├── CHECKLIST.md           # public packaging checklist, no IDs
-│   └── DEMO_SCRIPT.md
+│   ├── DEMO_SCRIPT.md
+│   ├── VIDEO_SCRIPT.md        # three-minute recording plan
+│   └── assets/                # draft deck and final deliverable location
 ├── tests/domain.test.js
 ├── index.html
 ├── sw.js
@@ -90,7 +94,7 @@ We're not the first to work on this. [Sugamya Bharat](https://crcsundernagar.nic
 
 ## Submission readiness
 
-This code is a starting point, not a finished competition entry. State and campus details, team info, the official presentation template, real validation, the signed declaration and any video still need to be put together separately. Use the [submission checklist](submission/CHECKLIST.md) for that. **Never commit student IDs, government IDs, signatures, completed declarations or credentials.**
+This code is a starting point, not a finished competition entry. A draft pitch deck and video script are included, but state and campus details, team information, official-template compliance, real validation, the signed declaration and the recorded video still need to be completed and checked separately. Use the [submission checklist](submission/CHECKLIST.md) for that. **Never commit student IDs, government IDs, signatures, completed declarations or credentials.**
 
 ## Attribution and license
 

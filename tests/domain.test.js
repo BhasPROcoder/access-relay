@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { createState, segmentStatus, journeyStatus, applyAction, journeysAffectedBy, campusPriority, isOverdue } from '../src/domain.js';
+import { createState, segmentStatus, journeyStatus, applyAction, journeysAffectedBy, campusPriority, isOverdue, auditTrail } from '../src/domain.js';
 const data = JSON.parse(await readFile(new URL('../data/journeys.json', import.meta.url)));
 const now = Date.UTC(2026, 9, 27);
 test('fixtures yield blocked, stale and current journeys', () => {
@@ -73,4 +73,13 @@ test('a repair claim becomes overdue only after the grace window', () => {
 test('invalid actors, segments and actions are rejected', () => {
   const state = createState(data, now);
   for (const action of [{ type: 'report', segmentId: 'missing', actor: 'reporter' }, { type: 'report', segmentId: 'gate', actor: 'admin' }, { type: 'report', segmentId: 'gate', actor: 'staff' }, { type: 'delete', segmentId: 'gate', actor: 'staff' }, { type: 'claim', segmentId: 'gate', actor: 'staff' }]) assert.throws(() => applyAction(state, action, now));
+});
+test('verification history groups accepted events by checkpoint in chronological order', () => {
+  const claimed = applyAction(createState(data, now), { type: 'claim', segmentId: 'library-ramp', actor: 'staff' }, now);
+  const rechecked = applyAction(claimed, { type: 'recheck', segmentId: 'library-ramp', actor: 'reviewer', passed: true }, now + 3600000);
+  const trail = auditTrail(rechecked);
+  const ramp = trail.find(entry => entry.id === 'library-ramp');
+  assert.deepEqual(ramp.events.map(event => `${event.type}:${event.actor}`), ['claim:staff', 'recheck:reviewer']);
+  assert.equal(trail.some(entry => entry.id === 'support-desk'), false);
+  assert.equal(trail.every(entry => entry.events.every((event, index) => index === 0 || event.at >= entry.events[index - 1].at)), true);
 });

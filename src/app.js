@@ -1,4 +1,4 @@
-import { createState, segmentStatus, journeyStatus, applyAction, LABELS, journeysAffectedBy, campusPriority, isOverdue } from './domain.js';
+import { createState, segmentStatus, journeyStatus, applyAction, LABELS, journeysAffectedBy, campusPriority, isOverdue, auditTrail } from './domain.js';
 
 const $ = selector => document.querySelector(selector);
 const key = 'accessrelay-demo-events-v1';
@@ -150,6 +150,25 @@ function speakSummary() {
   window.speechSynthesis.speak(utterance);
   $('#feedback').textContent = 'Reading the current journey status aloud.';
 }
+function downloadAuditTrail() {
+  const trail = auditTrail(state);
+  if (!trail.length) {
+    $('#feedback').textContent = 'No accepted actions have been recorded yet.';
+    return;
+  }
+  const report = {
+    generatedAt: new Date().toISOString(),
+    notice: 'Browser-local synthetic demo history. Identities are simulated and this file is not tamper-proof.',
+    checkpoints: trail
+  };
+  const url = URL.createObjectURL(new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'access-relay-verification-history.json';
+  link.click();
+  URL.revokeObjectURL(url);
+  $('#feedback').textContent = 'Browser-local verification history downloaded.';
+}
 async function init() {
   const response = await fetch('./data/journeys.json');
   if (!response.ok) throw new Error('Sample journeys could not be loaded.');
@@ -169,8 +188,23 @@ async function init() {
   $('#reset').addEventListener('click', () => { fresh(); resetPreview(); save(); render(); $('#feedback').textContent = 'Synthetic demo reset.'; });
   $('#print').addEventListener('click', () => window.print());
   $('#speak').addEventListener('click', speakSummary);
+  $('#auditTrail').addEventListener('click', downloadAuditTrail);
   $('#timeScrub').addEventListener('input', () => { previewHours = Number($('#timeScrub').value); render(); });
   $('#timeReset').addEventListener('click', () => { resetPreview(); render(); $('#feedback').textContent = 'Preview time reset to now.'; });
+  const comfortKey = 'accessrelay-comfort';
+  const applyComfort = enabled => {
+    document.documentElement.classList.toggle('comfort', enabled);
+    $('#comfort').setAttribute('aria-pressed', String(enabled));
+    $('#comfort').textContent = enabled ? 'Comfort mode: on' : 'Comfort mode';
+  };
+  let comfortEnabled = false;
+  try { comfortEnabled = localStorage.getItem(comfortKey) === '1'; } catch { /* keep the default */ }
+  applyComfort(comfortEnabled);
+  $('#comfort').addEventListener('click', () => {
+    comfortEnabled = !comfortEnabled;
+    applyComfort(comfortEnabled);
+    try { localStorage.setItem(comfortKey, comfortEnabled ? '1' : '0'); } catch { /* preference remains session-only */ }
+  });
   const connection = () => { $('#connection').textContent = navigator.onLine ? 'Online · local demo' : 'Offline · cached observations'; };
   window.addEventListener('online', connection); window.addEventListener('offline', connection); connection();
   render();

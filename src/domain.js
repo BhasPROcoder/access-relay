@@ -89,3 +89,13 @@ export const OVERDUE_HOURS = 4;
 export function isOverdue(segment, now = Date.now()) {
   return Boolean(segment.claim) && now - segment.claim.at > OVERDUE_HOURS * 3600000;
 }
+
+// Export accepted local events in chronological order, grouped by checkpoint.
+// This is a convenient prototype history, not a tamper-proof production audit log.
+export function auditTrail(state) {
+  const bySegment = {};
+  for (const event of state.events) (bySegment[event.segmentId] ??= []).push(event);
+  return Object.entries(state.segments)
+    .filter(([id]) => bySegment[id]?.length)
+    .map(([id, segment]) => ({ id, name: segment.name, events: bySegment[id].slice().sort((a, b) => a.at - b.at) }));
+}
