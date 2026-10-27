@@ -81,6 +81,12 @@ select{margin-left:.5rem}
 .escalation-draft{display:block;width:100%;margin:.6rem 0;font:inherit;font-size:.82rem;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:.8rem 1rem;resize:vertical}
 .skip{position:absolute;left:1rem;top:-100px;background:var(--paper-raised);padding:1rem;z-index:2;border-radius:10px;box-shadow:var(--shadow)}
 .skip:focus{top:1rem}
+.comfort-toggle{font-size:.72rem;padding:.4rem .8rem}
+.comfort-toggle[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+html.comfort{font-size:118%;letter-spacing:.01em}
+html.comfort .hero>p:last-child,html.comfort .segment p,html.comfort .notice,html.comfort .small{line-height:1.85}
+html.comfort .segment{animation:none}
+html.comfort button,html.comfort .journey-option{transition:none}
 @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){.segment{animation:none}button,.journey-option{transition:none}}
 @media(max-width:760px){main{padding:0 1rem}.workspace{grid-template-columns:1fr;gap:1rem}.hero{padding-top:2.5rem}.hero::before{display:none}.edition{display:none}.help{display:none}.toolbar{align-items:flex-start;flex-direction:column}.sidebar nav{display:grid;gap:.5rem}.journey-option{margin:0}header{flex-wrap:wrap}}

@@ -153,6 +153,20 @@ async function init() {
   $('#speak').addEventListener('click', speakSummary);
   $('#timeScrub').addEventListener('input', () => { previewHours = Number($('#timeScrub').value); render(); });
   $('#timeReset').addEventListener('click', () => { resetPreview(); render(); $('#feedback').textContent = 'Preview time reset to now.'; });
+  const comfortKey = 'accessrelay-comfort';
+  const applyComfort = on => {
+    document.documentElement.classList.toggle('comfort', on);
+    $('#comfort').setAttribute('aria-pressed', String(on));
+    $('#comfort').textContent = on ? 'Comfort mode: on' : 'Comfort mode';
+  };
+  let comfortOn = false;
+  try { comfortOn = localStorage.getItem(comfortKey) === '1'; } catch { /* no storage, default off */ }
+  applyComfort(comfortOn);
+  $('#comfort').addEventListener('click', () => {
+    comfortOn = !comfortOn;
+    applyComfort(comfortOn);
+    try { localStorage.setItem(comfortKey, comfortOn ? '1' : '0'); } catch { /* preference just won't persist */ }
+  });
   $('#smsForm').addEventListener('submit', event => {
     event.preventDefault();
     const input = $('#smsInput');

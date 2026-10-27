@@ -40,6 +40,7 @@ With npm available, equivalent shortcuts are `npm start`, `npm test`, and `npm r
 - A service worker caches the app after your first successful load on localhost or HTTPS, so later visits still work offline. Offline data is still dated though, so check freshness before you trust it.
 - A campus-priority banner that ranks which fix would restore the most journeys at once, and an overdue flag for claims nobody's rechecked in 4 hours.
 - A text-message-style reporting bridge for anyone without the app or a data plan, an escalation-message draft for overdue claims, and a live counter of blocked self-recheck attempts.
+- A comfort mode toggle: larger text, more spacing, motion off, applied across the whole interface and remembered between visits.
 
 ## Try the demo
 
