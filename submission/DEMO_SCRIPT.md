@@ -1,12 +1,12 @@
 # Four-minute demo outline
 
-1. **0:00–0:25:** Team and problem, then say the hook line out loud: "No actor can close their own leg of the relay, and evidence has to get re-passed before it goes stale." Say plainly that all the data is fictional.
-2. **0:25–0:55:** Drag the **preview-time slider** live. Watch a currently-clear segment flip from "Current observation" to "Needs a fresh check" right in front of the judges. This is the core idea, visible, not just claimed in a slide.
-3. **0:55–1:35:** Report a barrier on the **main gate**, the one segment shared by all three journeys. Watch all three flip to blocked at once, and point at the new **Campus Priority** banner: it just told you which single fix would restore all three.
-4. **1:35–2:05:** Switch to staff, claim the ramp repair. Status stays pending. Now stage the gotcha: try rechecking as staff yourself, and let the app reject it on camera.
-5. **2:05–2:45:** Switch to Independent reviewer. Fail the recheck once (ramp reopens blocked), then pass it (ramp clears). The unobserved library desk still keeps the journey from being complete, so fixing one thing isn't the whole story.
-6. **2:45–3:05:** Drag the time slider forward on a still-pending claim and show the overdue warning kick in. Nobody can let a claim sit forever and have it count as fixed.
-7. **3:05–3:30:** Click "Read status aloud." It's a real speech-synthesis readout of the journey status, not a slide claiming we care about accessibility.
-8. **3:30–4:00:** Cover local-only persistence, simulated identity, the alternatives already out there, how much AI helped build this, and what beneficiary and staff validation would still need to happen.
+1. **0:00–0:25:** Introduce the team and problem, then state the core rule: "A repair claim does not restore trust; a different person must recheck it." Say plainly that all data and actors are fictional.
+2. **0:25–0:50:** Open **Demo controls** and use the evidence-ageing simulation. Show a current observation becoming "Needs a fresh check." Explain that the control changes no stored evidence and exists only for this demonstration.
+3. **0:50–1:25:** As the visitor, report a barrier on the **main gate**, which is shared by all three journeys. Show the Campus Priority banner saying the barrier **affects** three journeys; do not claim one repair would restore all three.
+4. **1:25–1:55:** Select **Facilities staff** and show that only the valid "Claim repair" action appears. Claim the library-ramp repair and point out that its status remains pending.
+5. **1:55–2:35:** Select **Independent reviewer** and pass or fail the recheck. Even after a pass, the unknown library desk keeps the complete journey unverified.
+6. **2:35–3:00:** With a claim pending, simulate more than four hours and show the overdue recheck warning.
+7. **3:00–3:25:** Use "Read status aloud," keyboard navigation and the print view. Explain that speech output supplements semantic HTML rather than replacing it.
+8. **3:25–4:00:** Open the compact **Verification history**, then cover local-only persistence, simulated identity, alternatives, AI assistance and the beneficiary/staff validation still required.
 
 Don't invent user counts, prevented incidents, partnerships or audited compliance. Show the real test output on screen, and say plainly what it does and doesn't verify.
