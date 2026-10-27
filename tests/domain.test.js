@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { createState, segmentStatus, journeyStatus, applyAction } from '../src/domain.js';
+import { createState, segmentStatus, journeyStatus, applyAction, journeysAffectedBy, campusPriority, isOverdue } from '../src/domain.js';
 const data = JSON.parse(await readFile(new URL('../data/journeys.json', import.meta.url)));
 const now = Date.UTC(2026, 9, 27);
 test('fixtures yield blocked, stale and current journeys', () => {
@@ -33,6 +33,22 @@ test('failed recheck reopens; successful recheck creates expiring observation', 
   assert.equal(segmentStatus(passed.segments['library-ramp'], now), 'clear');
   assert.equal(segmentStatus(passed.segments['library-ramp'], now + 8 * 3600000), 'stale');
   assert.equal(journeyStatus(data.journeys[0], passed, now), 'unknown');
+});
+test('a segment shared by several journeys raises campus priority when it blocks', () => {
+  const state = createState(data, now);
+  assert.equal(journeysAffectedBy(data.journeys, 'gate').length, 3);
+  assert.equal(campusPriority(data.journeys, state, now).id, 'library-ramp');
+  const gateBlocked = applyAction(state, { type: 'report', segmentId: 'gate', actor: 'reporter' }, now);
+  const priority = campusPriority(data.journeys, gateBlocked, now);
+  assert.equal(priority.id, 'gate');
+  assert.equal(priority.journeys.length, 3);
+});
+test('a repair claim becomes overdue only after the grace window', () => {
+  const claimed = applyAction(createState(data, now), { type: 'claim', segmentId: 'library-ramp', actor: 'staff' }, now);
+  const segment = claimed.segments['library-ramp'];
+  assert.equal(isOverdue(segment, now), false);
+  assert.equal(isOverdue(segment, now + 3 * 3600000), false);
+  assert.equal(isOverdue(segment, now + 5 * 3600000), true);
 });
 test('invalid actors, segments and actions are rejected', () => {
   const state = createState(data, now);

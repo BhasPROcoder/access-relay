@@ -1,4 +1,4 @@
-import { createState, segmentStatus, journeyStatus, applyAction, LABELS } from './domain.js';
+import { createState, segmentStatus, journeyStatus, applyAction, LABELS, journeysAffectedBy, campusPriority, isOverdue } from './domain.js';
 
 const $ = selector => document.querySelector(selector);
 const key = 'accessrelay-demo-events-v1';
@@ -42,6 +42,21 @@ function render() {
   const now = simNow();
   const journey = dataset.journeys.find(j => j.id === selected);
   $('#timeReadout').textContent = previewHours === 0 ? 'now' : `${date(now)} (+${previewHours}h)`;
+  const priority = campusPriority(dataset.journeys, state, now);
+  const priorityBox = $('#priority');
+  if (priority) {
+    const segment = state.segments[priority.id];
+    const names = priority.journeys.map(j => j.name).join(', ');
+    priorityBox.hidden = false;
+    priorityBox.replaceChildren(
+      element('p', 'CAMPUS PRIORITY', 'eyebrow'),
+      element('p', `Fixing "${segment.name}" would restore ${priority.journeys.length} journey${priority.journeys.length > 1 ? 's' : ''} at once.`),
+      element('p', `Affects: ${names}`, 'small')
+    );
+  } else {
+    priorityBox.hidden = true;
+    priorityBox.replaceChildren();
+  }
   $('#journeys').replaceChildren(...dataset.journeys.map(j => {
     const node = element('button', undefined, 'journey-option');
     node.append(element('strong', j.name), element('span', LABELS[journeyStatus(j, state, now)], 'small'));
@@ -65,7 +80,16 @@ function render() {
       actions.append(button('Recheck: resolved', { type: 'recheck', segmentId: id, passed: true }), button('Recheck: still blocked', { type: 'recheck', segmentId: id, passed: false }));
     }
     if (['clear', 'unknown', 'stale'].includes(status)) actions.append(button('Record a clear observation', { type: 'observe', segmentId: id }));
-    item.append(heading, element('p', segment.detail), element('p', `Fixture context above is fixed. Latest workflow status: ${LABELS[status]}.`, 'small'), element('p', segment.status === 'unknown' ? 'No observation recorded.' : `Observed ${date(segment.observedAt)} · Review due ${date(segment.expiresAt)}`, 'small'), actions);
+    item.append(heading, element('p', segment.detail), element('p', `Fixture context above is fixed. Latest workflow status: ${LABELS[status]}.`, 'small'), element('p', segment.status === 'unknown' ? 'No observation recorded.' : `Observed ${date(segment.observedAt)} · Review due ${date(segment.expiresAt)}`, 'small'));
+    if (status === 'blocked') {
+      const shared = journeysAffectedBy(dataset.journeys, id).filter(j => j.id !== journey.id);
+      if (shared.length) item.append(element('p', `Also required for: ${shared.map(j => j.name).join(', ')}`, 'small overdue'));
+    }
+    if (status === 'pending' && isOverdue(segment, now)) {
+      const hours = Math.floor((now - segment.claim.at) / 3600000);
+      item.append(element('p', `⚠ Awaiting recheck for ${hours}h — overdue, consider escalating.`, 'small overdue'));
+    }
+    item.append(actions);
     return item;
   }));
   $('#events').replaceChildren(...(state.events.length ? state.events.slice(-15).reverse().map(event => element('li', `${date(event.at)} — ${state.segments[event.segmentId].name}: ${event.type}${event.type === 'recheck' ? (event.passed ? ' passed' : ' failed') : ''} (${event.actor})`)) : [element('li', 'No changes yet. Try reporting a barrier or rechecking a repair.')]));

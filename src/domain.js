@@ -69,3 +69,22 @@ export function applyAction(state, action, now = Date.now()) {
     passed: action.type === 'recheck' ? action.passed : null, at: now });
   return next;
 }
+
+// A segment can sit on more than one service journey (the campus gate is on all three).
+// Fixing it once restores every journey that depends on it; this surfaces that shared risk.
+export function journeysAffectedBy(journeys, segmentId) {
+  return journeys.filter(j => j.segments.includes(segmentId));
+}
+
+export function campusPriority(journeys, state, now = Date.now()) {
+  const blocked = Object.keys(state.segments).filter(id => segmentStatus(state.segments[id], now) === 'blocked');
+  if (!blocked.length) return null;
+  return blocked
+    .map(id => ({ id, journeys: journeysAffectedBy(journeys, id) }))
+    .sort((a, b) => b.journeys.length - a.journeys.length || a.id.localeCompare(b.id))[0];
+}
+
+export const OVERDUE_HOURS = 4;
+export function isOverdue(segment, now = Date.now()) {
+  return Boolean(segment.claim) && now - segment.claim.at > OVERDUE_HOURS * 3600000;
+}
