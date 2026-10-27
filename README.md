@@ -15,8 +15,8 @@ AccessRelay's central rule is that **no actor can close their own leg of the rel
 Install Node.js 22 or later. No third-party dependencies, no API keys, no database, nothing extra to install.
 
 ```sh
-git clone https://github.com/BhasPROcoder/accessrelay.git
-cd accessrelay
+git clone https://github.com/BhasPROcoder/access-relay.git
+cd access-relay
 node scripts/serve.mjs
 ```
 
@@ -54,7 +54,7 @@ With npm available, equivalent shortcuts are `npm start`, `npm test`, and `npm r
 ## Repository structure
 
 ```text
-accessrelay/
+access-relay/
 ├── .github/workflows/ci.yml     # syntax and domain tests
 ├── data/journeys.json          # synthetic, relative-time fixtures
 ├── doc/                        # supporting review material
