@@ -4,7 +4,14 @@ const $ = selector => document.querySelector(selector);
 const key = 'accessrelay-demo-events-v1';
 let dataset, state, selected;
 let storageAvailable = true;
+let previewHours = 0;
 const date = value => new Date(value).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+const simNow = () => Date.now() + previewHours * 3600000;
+function resetPreview() {
+  previewHours = 0;
+  const scrub = $('#timeScrub');
+  if (scrub) scrub.value = '0';
+}
 
 function element(tag, text, className) {
   const node = document.createElement(tag);
@@ -23,6 +30,7 @@ function button(label, action) {
       const at = Date.now();
       const event = { ...action, actor: $('#actor').value };
       state = { ...applyAction(state, event, at), startedAt: state.startedAt, actions: [...state.actions, { action: event, at }] };
+      resetPreview();
       save(); render();
       $('#feedback').textContent = storageAvailable ? 'Demo updated. See the new status and activity below.' : 'Demo updated in memory only; browser storage is unavailable.';
       $('#journey').focus();
@@ -31,19 +39,21 @@ function button(label, action) {
   return node;
 }
 function render() {
+  const now = simNow();
   const journey = dataset.journeys.find(j => j.id === selected);
+  $('#timeReadout').textContent = previewHours === 0 ? 'now' : `${date(now)} (+${previewHours}h)`;
   $('#journeys').replaceChildren(...dataset.journeys.map(j => {
     const node = element('button', undefined, 'journey-option');
-    node.append(element('strong', j.name), element('span', LABELS[journeyStatus(j, state)], 'small'));
+    node.append(element('strong', j.name), element('span', LABELS[journeyStatus(j, state, now)], 'small'));
     node.setAttribute('aria-pressed', String(selected === j.id));
     node.addEventListener('click', () => { selected = j.id; $('#feedback').textContent = ''; render(); });
     return node;
   }));
-  const status = journeyStatus(journey, state);
+  const status = journeyStatus(journey, state, now);
   const badge = element('span', status === 'clear' ? 'No known obstruction in current observations' : LABELS[status], `badge ${status}`);
   $('#summary').replaceChildren(element('p', 'YOUR SERVICE JOURNEY', 'eyebrow'), element('h2', journey.name), element('p', journey.purpose), badge, element('p', `Owner: ${journey.owner}`, 'small'));
   $('#segments').replaceChildren(...journey.segments.map((id, index) => {
-    const segment = state.segments[id], status = segmentStatus(segment);
+    const segment = state.segments[id], status = segmentStatus(segment, now);
     const item = element('li', undefined, 'segment');
     const heading = element('div', undefined, 'segment-heading');
     heading.append(element('span', String(index + 1).padStart(2, '0'), 'step'), element('h3', segment.name), element('span', LABELS[status], `badge ${status}`));
@@ -63,6 +73,19 @@ function fresh() {
   const now = Date.now();
   state = { ...createState(dataset, now), startedAt: now, actions: [] };
 }
+function speakSummary() {
+  if (!('speechSynthesis' in window)) { $('#feedback').textContent = 'Speech playback is not supported in this browser.'; return; }
+  const journey = dataset.journeys.find(j => j.id === selected);
+  const now = simNow();
+  const lines = journey.segments.map(id => {
+    const segment = state.segments[id];
+    return `${segment.name}: ${LABELS[segmentStatus(segment, now)]}`;
+  });
+  const utterance = new SpeechSynthesisUtterance(`${journey.name}. ${lines.join('. ')}.`);
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(utterance);
+  $('#feedback').textContent = 'Reading the current journey status aloud.';
+}
 async function init() {
   const response = await fetch('./data/journeys.json');
   if (!response.ok) throw new Error('Sample journeys could not be loaded.');
@@ -79,8 +102,11 @@ async function init() {
     }
   } catch { fresh(); $('#feedback').textContent = 'Saved demo could not be restored. A fresh sample is shown.'; }
   $('#actor').addEventListener('change', () => { $('#feedback').textContent = `Demo actor changed to ${$('#actor').selectedOptions[0].textContent}.`; });
-  $('#reset').addEventListener('click', () => { fresh(); save(); render(); $('#feedback').textContent = 'Synthetic demo reset.'; });
+  $('#reset').addEventListener('click', () => { fresh(); resetPreview(); save(); render(); $('#feedback').textContent = 'Synthetic demo reset.'; });
   $('#print').addEventListener('click', () => window.print());
+  $('#speak').addEventListener('click', speakSummary);
+  $('#timeScrub').addEventListener('input', () => { previewHours = Number($('#timeScrub').value); render(); });
+  $('#timeReset').addEventListener('click', () => { resetPreview(); render(); $('#feedback').textContent = 'Preview time reset to now.'; });
   const connection = () => { $('#connection').textContent = navigator.onLine ? 'Online · local demo' : 'Offline · cached observations'; };
   window.addEventListener('online', connection); window.addEventListener('offline', connection); connection();
   render();

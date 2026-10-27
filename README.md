@@ -6,6 +6,10 @@ AccessRelay is an open-source hackathon prototype for dated accessibility observ
 
 > **Synthetic demo:** places, observations and actors are fictional. This is not navigation, accessibility certification or a safety guarantee. No beneficiary pilot has been completed. The actor selector is a simulation, not authentication.
 
+## The Relay Rule
+
+AccessRelay's one real invariant, the thing no other accessibility map enforces: **no actor can close their own leg of the relay, and evidence must be re-passed before it goes stale.** A visitor reports a barrier, staff can only *claim* a fix (never verify it), and a separate reviewer must recheck it before it counts as clear. A known barrier never disappears just because time passed, and an old "clear" silently expires into "needs a fresh check" rather than staying trusted forever. That is the whole product: not a map of pins, a chain of custody for accessibility evidence.
+
 ## Run locally
 
 Install Node.js 22 or later. No third-party dependencies, API keys, database or install step are required.
