@@ -90,9 +90,10 @@ select{margin-left:.5rem}
 .unknown::before{content:"?"}
 .stale::before{content:"↻"}
 .actions{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem}
-.activity{border-radius:20px;margin:2rem 0 3rem;background:var(--paper-raised);box-shadow:var(--shadow)}
-.activity>p,.activity>ol{margin-left:1.5rem;margin-right:1.5rem}
-.activity>ol{padding-bottom:1.5rem}
+.activity{padding:1.6rem 1.8rem;border-radius:20px;margin:2rem 0 3rem;background:var(--paper-raised);box-shadow:var(--shadow)}
+.activity>p,.activity>ol{margin-left:0;margin-right:0}
+.activity>ol{padding-bottom:0}
+#events{list-style:none;padding:0;margin:0}
 .activity li{font-size:.85rem;margin-bottom:.5rem;color:var(--ink-soft)}
 .comfort-toggle{font-size:.78rem;padding:.45rem .8rem;white-space:nowrap}
 .comfort-toggle[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
