@@ -71,6 +71,7 @@ select{margin-left:.5rem}
 .stale::before{content:"↻"}
 .actions{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem}
 .activity{padding:1.6rem 1.8rem;border-radius:20px;margin:2rem 0 3rem;background:var(--paper-raised);box-shadow:var(--shadow)}
+#events{list-style:none;padding:0;margin:0}
 .activity li{font-size:.85rem;margin-bottom:.5rem;color:var(--ink-soft)}
 .activity #auditTrail{margin-bottom:1rem}
 .sms-bridge{padding:1.6rem 1.8rem;border-radius:20px;margin:2rem 0;background:var(--paper-raised);box-shadow:var(--shadow)}
