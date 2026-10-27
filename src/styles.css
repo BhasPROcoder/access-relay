@@ -72,6 +72,7 @@ select{margin-left:.5rem}
 .actions{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem}
 .activity{padding:1.6rem 1.8rem;border-radius:20px;margin:2rem 0 3rem;background:var(--paper-raised);box-shadow:var(--shadow)}
 .activity li{font-size:.85rem;margin-bottom:.5rem;color:var(--ink-soft)}
+.activity #auditTrail{margin-bottom:1rem}
 .sms-bridge{padding:1.6rem 1.8rem;border-radius:20px;margin:2rem 0;background:var(--paper-raised);box-shadow:var(--shadow)}
 .sms-bridge p.small{margin-top:.3rem}
 #smsForm{display:flex;gap:.6rem;margin-top:1rem;flex-wrap:wrap}

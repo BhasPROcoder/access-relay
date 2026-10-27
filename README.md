@@ -41,6 +41,7 @@ With npm available, equivalent shortcuts are `npm start`, `npm test`, and `npm r
 - A campus-priority banner that ranks which fix would restore the most journeys at once, and an overdue flag for claims nobody's rechecked in 4 hours.
 - A text-message-style reporting bridge for anyone without the app or a data plan, an escalation-message draft for overdue claims, and a live counter of blocked self-recheck attempts.
 - A comfort mode toggle: larger text, more spacing, motion off, applied across the whole interface and remembered between visits.
+- A downloadable audit trail: every claim and recheck, grouped per place, proving the relay rule held because a violation can never reach the log in the first place.
 
 ## Try the demo
 

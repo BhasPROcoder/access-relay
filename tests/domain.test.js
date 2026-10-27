@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { createState, segmentStatus, journeyStatus, applyAction, journeysAffectedBy, campusPriority, isOverdue, parseSmsReport, isSelfRecheckAttempt, draftEscalationMessage } from '../src/domain.js';
+import { createState, segmentStatus, journeyStatus, applyAction, journeysAffectedBy, campusPriority, isOverdue, parseSmsReport, isSelfRecheckAttempt, draftEscalationMessage, auditTrail } from '../src/domain.js';
 const data = JSON.parse(await readFile(new URL('../data/journeys.json', import.meta.url)));
 const now = Date.UTC(2026, 9, 27);
 test('fixtures yield blocked, stale and current journeys', () => {
@@ -76,4 +76,13 @@ test('an overdue claim drafts a real escalation message naming who to chase and 
   assert.match(message, /staff/);
   assert.match(message, /5h/);
   assert.match(message, /Visit the library/);
+});
+test('the audit trail groups each segment\'s events chronologically and proves the relay rule held', () => {
+  const claimed = applyAction(createState(data, now), { type: 'claim', segmentId: 'library-ramp', actor: 'staff' }, now);
+  const rechecked = applyAction(claimed, { type: 'recheck', segmentId: 'library-ramp', actor: 'reviewer', passed: true }, now + 3600000);
+  const trail = auditTrail(rechecked);
+  const ramp = trail.find(entry => entry.id === 'library-ramp');
+  assert.deepEqual(ramp.events.map(e => `${e.type}:${e.actor}`), ['claim:staff', 'recheck:reviewer']);
+  assert.equal(trail.some(entry => entry.id === 'support-desk'), false);
+  assert.equal(trail.every(entry => entry.events.every((event, i) => i === 0 || event.at >= entry.events[i - 1].at)), true);
 });

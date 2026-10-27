@@ -106,6 +106,17 @@ export function isSelfRecheckAttempt(state, action) {
   return Boolean(segment?.claim) && segment.claim.actor === action.actor;
 }
 
+// Every event here already passed the relay rule at the moment it was recorded
+// (applyAction rejects a self-recheck before it reaches state.events), so this
+// trail is proof the rule held, not just a display of what happened.
+export function auditTrail(state) {
+  const bySegment = {};
+  for (const event of state.events) (bySegment[event.segmentId] ??= []).push(event);
+  return Object.entries(state.segments)
+    .filter(([id]) => bySegment[id]?.length)
+    .map(([id, segment]) => ({ id, name: segment.name, events: bySegment[id].slice().sort((a, b) => a.at - b.at) }));
+}
+
 export function draftEscalationMessage(segment, journeys, now = Date.now()) {
   if (!isOverdue(segment, now)) return null;
   const hours = Math.floor((now - segment.claim.at) / 3600000);

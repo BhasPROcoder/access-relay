@@ -1,4 +1,4 @@
-import { createState, segmentStatus, journeyStatus, applyAction, LABELS, journeysAffectedBy, campusPriority, isOverdue, parseSmsReport, isSelfRecheckAttempt, draftEscalationMessage } from './domain.js';
+import { createState, segmentStatus, journeyStatus, applyAction, LABELS, journeysAffectedBy, campusPriority, isOverdue, parseSmsReport, isSelfRecheckAttempt, draftEscalationMessage, auditTrail } from './domain.js';
 
 const $ = selector => document.querySelector(selector);
 const key = 'accessrelay-demo-events-v1';
@@ -132,6 +132,23 @@ function speakSummary() {
   window.speechSynthesis.speak(utterance);
   $('#feedback').textContent = 'Reading the current journey status aloud.';
 }
+function downloadAuditTrail() {
+  const trail = auditTrail(state);
+  if (!trail.length) { $('#feedback').textContent = 'No activity yet, so there is nothing to export.'; return; }
+  const report = {
+    generatedAt: new Date().toISOString(),
+    note: 'Every event below already passed the relay rule before it was recorded: no actor could close their own leg.',
+    segments: trail
+  };
+  const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'accessrelay-audit-trail.json';
+  link.click();
+  URL.revokeObjectURL(url);
+  $('#feedback').textContent = 'Audit trail downloaded. Every claim and recheck pair names two different actors.';
+}
 async function init() {
   const response = await fetch('./data/journeys.json');
   if (!response.ok) throw new Error('Sample journeys could not be loaded.');
@@ -151,6 +168,7 @@ async function init() {
   $('#reset').addEventListener('click', () => { fresh(); resetPreview(); save(); render(); $('#feedback').textContent = 'Synthetic demo reset.'; });
   $('#print').addEventListener('click', () => window.print());
   $('#speak').addEventListener('click', speakSummary);
+  $('#auditTrail').addEventListener('click', downloadAuditTrail);
   $('#timeScrub').addEventListener('input', () => { previewHours = Number($('#timeScrub').value); render(); });
   $('#timeReset').addEventListener('click', () => { resetPreview(); render(); $('#feedback').textContent = 'Preview time reset to now.'; });
   const comfortKey = 'accessrelay-comfort';
