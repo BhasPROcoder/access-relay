@@ -77,6 +77,24 @@ test('an overdue claim drafts a real escalation message naming who to chase and 
   assert.match(message, /5h/);
   assert.match(message, /Visit the library/);
 });
+test('reporting a barrier again while its repair is pending recheck does not discard the claim', () => {
+  const claimed = applyAction(createState(data, now), { type: 'claim', segmentId: 'library-ramp', actor: 'staff' }, now);
+  assert.throws(() => applyAction(claimed, { type: 'report', segmentId: 'library-ramp', actor: 'reporter' }, now + 1000), /pending recheck/i);
+  assert.equal(segmentStatus(claimed.segments['library-ramp'], now), 'pending');
+});
+test('claiming a repair gives a distinct message for "not reported" versus "already claimed"', () => {
+  const state = createState(data, now);
+  assert.throws(() => applyAction(state, { type: 'claim', segmentId: 'gate', actor: 'staff' }, now), /report a barrier before claiming/i);
+  const claimed = applyAction(state, { type: 'claim', segmentId: 'library-ramp', actor: 'staff' }, now);
+  assert.throws(() => applyAction(claimed, { type: 'claim', segmentId: 'library-ramp', actor: 'staff' }, now), /already claimed/i);
+});
+test('an SMS report prefers an exact segment name match over an earlier substring match', () => {
+  const segments = [
+    { id: 'a', name: 'Student support desk annex' },
+    { id: 'b', name: 'Student support desk' }
+  ];
+  assert.deepEqual(parseSmsReport('CLEAR Student support desk', segments), { type: 'observe', segmentId: 'b', actor: 'reporter' });
+});
 test('the audit trail groups each segment\'s events chronologically and proves the relay rule held', () => {
   const claimed = applyAction(createState(data, now), { type: 'claim', segmentId: 'library-ramp', actor: 'staff' }, now);
   const rechecked = applyAction(claimed, { type: 'recheck', segmentId: 'library-ramp', actor: 'reviewer', passed: true }, now + 3600000);

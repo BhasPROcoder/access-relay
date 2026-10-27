@@ -39,12 +39,13 @@ export function applyAction(state, action, now = Date.now()) {
   const segment = next.segments[action.segmentId];
   switch (action.type) {
     case 'report':
+      if (segment.claim) throw new Error('A repair claim is pending recheck. Resolve that before reporting again.');
       segment.status = 'blocked';
-      segment.claim = null;
       break;
     case 'claim':
       if (action.actor !== 'staff') throw new Error('Only the staff demo actor can claim a repair.');
-      if (segment.status !== 'blocked' || segment.claim) throw new Error('Report a barrier before claiming its repair.');
+      if (segment.claim) throw new Error('This repair is already claimed and awaiting recheck.');
+      if (segment.status !== 'blocked') throw new Error('Report a barrier before claiming its repair.');
       segment.claim = { actor: action.actor, at: now };
       break;
     case 'recheck':
@@ -95,7 +96,8 @@ export function parseSmsReport(text, segments) {
   const command = SMS_COMMANDS[words[0]?.toUpperCase()];
   if (!command) throw new Error("Don't understand that. Try: BLOCKED <place> or CLEAR <place>.");
   const name = words.slice(1).join(' ').toLowerCase();
-  const segment = segments.find(s => s.name.toLowerCase() === name || s.name.toLowerCase().includes(name));
+  const segment = name && (segments.find(s => s.name.toLowerCase() === name)
+    ?? segments.find(s => s.name.toLowerCase().includes(name)));
   if (!name || !segment) throw new Error(`Couldn't find a place matching "${name}".`);
   return { type: command, segmentId: segment.id, actor: 'reporter' };
 }
