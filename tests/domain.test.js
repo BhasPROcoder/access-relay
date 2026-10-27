@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { createState, segmentStatus, journeyStatus, applyAction, journeysAffectedBy, campusPriority, isOverdue } from '../src/domain.js';
+import { createState, segmentStatus, journeyStatus, applyAction, journeysAffectedBy, campusPriority, isOverdue, parseSmsReport, isSelfRecheckAttempt, draftEscalationMessage } from '../src/domain.js';
 const data = JSON.parse(await readFile(new URL('../data/journeys.json', import.meta.url)));
 const now = Date.UTC(2026, 9, 27);
 test('fixtures yield blocked, stale and current journeys', () => {
@@ -53,4 +53,27 @@ test('a repair claim becomes overdue only after the grace window', () => {
 test('invalid actors, segments and actions are rejected', () => {
   const state = createState(data, now);
   for (const action of [{ type: 'report', segmentId: 'missing', actor: 'reporter' }, { type: 'report', segmentId: 'gate', actor: 'admin' }, { type: 'delete', segmentId: 'gate', actor: 'staff' }, { type: 'claim', segmentId: 'gate', actor: 'staff' }]) assert.throws(() => applyAction(state, action, now));
+});
+test('an SMS-style report maps a plain-text command to a real action', () => {
+  assert.deepEqual(parseSmsReport('BLOCKED LIBRARY RAMP', data.segments), { type: 'report', segmentId: 'library-ramp', actor: 'reporter' });
+  assert.deepEqual(parseSmsReport('clear library ramp', data.segments), { type: 'observe', segmentId: 'library-ramp', actor: 'reporter' });
+  assert.throws(() => parseSmsReport('FOO LIBRARY RAMP', data.segments), /don't understand/i);
+  assert.throws(() => parseSmsReport('BLOCKED NOWHERE', data.segments), /couldn't find/i);
+  assert.throws(() => parseSmsReport('   ', data.segments), /don't understand/i);
+});
+test('a recheck attempt by the same actor who claimed the repair is flagged as a self-recheck', () => {
+  const claimed = applyAction(createState(data, now), { type: 'claim', segmentId: 'library-ramp', actor: 'staff' }, now);
+  assert.equal(isSelfRecheckAttempt(claimed, { type: 'recheck', segmentId: 'library-ramp', actor: 'staff' }), true);
+  assert.equal(isSelfRecheckAttempt(claimed, { type: 'recheck', segmentId: 'library-ramp', actor: 'reviewer' }), false);
+  assert.equal(isSelfRecheckAttempt(createState(data, now), { type: 'recheck', segmentId: 'library-ramp', actor: 'staff' }), false);
+  assert.equal(isSelfRecheckAttempt(claimed, { type: 'report', segmentId: 'library-ramp', actor: 'staff' }), false);
+});
+test('an overdue claim drafts a real escalation message naming who to chase and why', () => {
+  const claimed = applyAction(createState(data, now), { type: 'claim', segmentId: 'library-ramp', actor: 'staff' }, now);
+  assert.equal(draftEscalationMessage(claimed.segments['library-ramp'], data.journeys, now), null);
+  const message = draftEscalationMessage(claimed.segments['library-ramp'], data.journeys, now + 5 * 3600000);
+  assert.match(message, /Library ramp/);
+  assert.match(message, /staff/);
+  assert.match(message, /5h/);
+  assert.match(message, /Visit the library/);
 });

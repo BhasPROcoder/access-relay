@@ -88,3 +88,27 @@ export const OVERDUE_HOURS = 4;
 export function isOverdue(segment, now = Date.now()) {
   return Boolean(segment.claim) && now - segment.claim.at > OVERDUE_HOURS * 3600000;
 }
+
+const SMS_COMMANDS = { BLOCKED: 'report', CLEAR: 'observe' };
+export function parseSmsReport(text, segments) {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  const command = SMS_COMMANDS[words[0]?.toUpperCase()];
+  if (!command) throw new Error("Don't understand that. Try: BLOCKED <place> or CLEAR <place>.");
+  const name = words.slice(1).join(' ').toLowerCase();
+  const segment = segments.find(s => s.name.toLowerCase() === name || s.name.toLowerCase().includes(name));
+  if (!name || !segment) throw new Error(`Couldn't find a place matching "${name}".`);
+  return { type: command, segmentId: segment.id, actor: 'reporter' };
+}
+
+export function isSelfRecheckAttempt(state, action) {
+  if (action.type !== 'recheck') return false;
+  const segment = state.segments[action.segmentId];
+  return Boolean(segment?.claim) && segment.claim.actor === action.actor;
+}
+
+export function draftEscalationMessage(segment, journeys, now = Date.now()) {
+  if (!isOverdue(segment, now)) return null;
+  const hours = Math.floor((now - segment.claim.at) / 3600000);
+  const affected = journeysAffectedBy(journeys, segment.id).map(j => j.name).join(', ');
+  return `Subject: ${segment.name} needs a recheck\n\n${segment.name} was claimed fixed by ${segment.claim.actor} ${hours}h ago, and nobody has rechecked it since.\nThis affects: ${affected}.\nPlease get an independent reviewer to recheck it.`;
+}

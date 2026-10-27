@@ -1,10 +1,11 @@
-import { createState, segmentStatus, journeyStatus, applyAction, LABELS, journeysAffectedBy, campusPriority, isOverdue } from './domain.js';
+import { createState, segmentStatus, journeyStatus, applyAction, LABELS, journeysAffectedBy, campusPriority, isOverdue, parseSmsReport, isSelfRecheckAttempt, draftEscalationMessage } from './domain.js';
 
 const $ = selector => document.querySelector(selector);
 const key = 'accessrelay-demo-events-v1';
 let dataset, state, selected;
 let storageAvailable = true;
 let previewHours = 0;
+let selfRecheckBlocked = 0;
 const date = value => new Date(value).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 const simNow = () => Date.now() + previewHours * 3600000;
 function resetPreview() {
@@ -23,12 +24,16 @@ function save() {
   try { localStorage.setItem(key, JSON.stringify({ startedAt: state.startedAt, actions: state.actions })); }
   catch { storageAvailable = false; }
 }
+function renderIntegrity() {
+  $('#integrity').textContent = `${selfRecheckBlocked} self-check${selfRecheckBlocked === 1 ? '' : 's'} blocked`;
+}
 function button(label, action) {
   const node = element('button', label);
   node.addEventListener('click', () => {
     try {
       const at = Date.now();
       const event = { ...action, actor: $('#actor').value };
+      if (isSelfRecheckAttempt(state, event)) { selfRecheckBlocked++; renderIntegrity(); }
       state = { ...applyAction(state, event, at), startedAt: state.startedAt, actions: [...state.actions, { action: event, at }] };
       resetPreview();
       save(); render();
@@ -88,6 +93,22 @@ function render() {
     if (status === 'pending' && isOverdue(segment, now)) {
       const hours = Math.floor((now - segment.claim.at) / 3600000);
       item.append(element('p', `⚠ Still waiting on a recheck after ${hours}h. Someone should escalate this.`, 'small overdue'));
+      const draft = draftEscalationMessage(segment, dataset.journeys, now);
+      const escalation = element('div', undefined, 'escalation');
+      const textarea = document.createElement('textarea');
+      textarea.className = 'escalation-draft';
+      textarea.readOnly = true;
+      textarea.rows = 4;
+      textarea.value = draft;
+      textarea.setAttribute('aria-label', `Draft escalation message for ${segment.name}`);
+      const copyBtn = element('button', 'Copy escalation message');
+      copyBtn.type = 'button';
+      copyBtn.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(draft); copyBtn.textContent = 'Copied'; setTimeout(() => { copyBtn.textContent = 'Copy escalation message'; }, 1500); }
+        catch { copyBtn.textContent = "Couldn't copy. Select the text above instead."; }
+      });
+      escalation.append(textarea, copyBtn);
+      item.append(escalation);
     }
     item.append(actions);
     return item;
@@ -132,6 +153,20 @@ async function init() {
   $('#speak').addEventListener('click', speakSummary);
   $('#timeScrub').addEventListener('input', () => { previewHours = Number($('#timeScrub').value); render(); });
   $('#timeReset').addEventListener('click', () => { resetPreview(); render(); $('#feedback').textContent = 'Preview time reset to now.'; });
+  $('#smsForm').addEventListener('submit', event => {
+    event.preventDefault();
+    const input = $('#smsInput');
+    try {
+      const action = parseSmsReport(input.value, dataset.segments);
+      const at = Date.now();
+      state = { ...applyAction(state, action, at), startedAt: state.startedAt, actions: [...state.actions, { action, at }] };
+      const segment = state.segments[action.segmentId];
+      resetPreview(); save(); render();
+      $('#smsReply').textContent = `✓ Logged. ${segment.name} now shows: ${LABELS[segmentStatus(segment, simNow())]}.`;
+      input.value = '';
+    } catch (error) { $('#smsReply').textContent = error.message; }
+  });
+  renderIntegrity();
   const connection = () => { $('#connection').textContent = navigator.onLine ? 'Online · local demo' : 'Offline · cached observations'; };
   window.addEventListener('online', connection); window.addEventListener('offline', connection); connection();
   render();
