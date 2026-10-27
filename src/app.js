@@ -32,7 +32,7 @@ function button(label, action) {
       state = { ...applyAction(state, event, at), startedAt: state.startedAt, actions: [...state.actions, { action: event, at }] };
       resetPreview();
       save(); render();
-      $('#feedback').textContent = storageAvailable ? 'Demo updated. See the new status and activity below.' : 'Demo updated in memory only; browser storage is unavailable.';
+      $('#feedback').textContent = storageAvailable ? 'Demo updated. See the new status and activity below.' : "Demo updated in memory only. Your browser won't save it this time.";
       $('#journey').focus();
     } catch (error) { $('#feedback').textContent = error.message; }
   });
@@ -87,19 +87,19 @@ function render() {
     }
     if (status === 'pending' && isOverdue(segment, now)) {
       const hours = Math.floor((now - segment.claim.at) / 3600000);
-      item.append(element('p', `⚠ Awaiting recheck for ${hours}h — overdue, consider escalating.`, 'small overdue'));
+      item.append(element('p', `⚠ Still waiting on a recheck after ${hours}h. Someone should escalate this.`, 'small overdue'));
     }
     item.append(actions);
     return item;
   }));
-  $('#events').replaceChildren(...(state.events.length ? state.events.slice(-15).reverse().map(event => element('li', `${date(event.at)} — ${state.segments[event.segmentId].name}: ${event.type}${event.type === 'recheck' ? (event.passed ? ' passed' : ' failed') : ''} (${event.actor})`)) : [element('li', 'No changes yet. Try reporting a barrier or rechecking a repair.')]));
+  $('#events').replaceChildren(...(state.events.length ? state.events.slice(-15).reverse().map(event => element('li', `${date(event.at)} · ${state.segments[event.segmentId].name}: ${event.type}${event.type === 'recheck' ? (event.passed ? ' passed' : ' failed') : ''} (${event.actor})`)) : [element('li', 'No changes yet. Try reporting a barrier or rechecking a repair.')]));
 }
 function fresh() {
   const now = Date.now();
   state = { ...createState(dataset, now), startedAt: now, actions: [] };
 }
 function speakSummary() {
-  if (!('speechSynthesis' in window)) { $('#feedback').textContent = 'Speech playback is not supported in this browser.'; return; }
+  if (!('speechSynthesis' in window)) { $('#feedback').textContent = "This browser can't read text aloud."; return; }
   const journey = dataset.journeys.find(j => j.id === selected);
   const now = simNow();
   const lines = journey.segments.map(id => {
@@ -125,7 +125,7 @@ async function init() {
       for (const item of saved.actions) replay = applyAction(replay, item.action, item.at);
       state = { ...replay, startedAt: saved.startedAt, actions: saved.actions };
     }
-  } catch { fresh(); $('#feedback').textContent = 'Saved demo could not be restored. A fresh sample is shown.'; }
+  } catch { fresh(); $('#feedback').textContent = "Couldn't restore your saved demo, so here's a fresh one."; }
   $('#actor').addEventListener('change', () => { $('#feedback').textContent = `Demo actor changed to ${$('#actor').selectedOptions[0].textContent}.`; });
   $('#reset').addEventListener('click', () => { fresh(); resetPreview(); save(); render(); $('#feedback').textContent = 'Synthetic demo reset.'; });
   $('#print').addEventListener('click', () => window.print());
