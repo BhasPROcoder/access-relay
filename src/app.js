@@ -55,6 +55,7 @@ function render() {
   $('#segments').replaceChildren(...journey.segments.map((id, index) => {
     const segment = state.segments[id], status = segmentStatus(segment, now);
     const item = element('li', undefined, 'segment');
+    item.style.setProperty('--i', index);
     const heading = element('div', undefined, 'segment-heading');
     heading.append(element('span', String(index + 1).padStart(2, '0'), 'step'), element('h3', segment.name), element('span', LABELS[status], `badge ${status}`));
     const actions = element('div', undefined, 'actions');
