@@ -21,8 +21,10 @@ function element(tag, text, className) {
   return node;
 }
 function save() {
-  try { localStorage.setItem(key, JSON.stringify({ startedAt: state.startedAt, actions: state.actions })); }
-  catch { storageAvailable = false; }
+  try {
+    localStorage.setItem(key, JSON.stringify({ startedAt: state.startedAt, actions: state.actions, selfRecheckBlocked }));
+    storageAvailable = true;
+  } catch { storageAvailable = false; }
 }
 function renderIntegrity() {
   $('#integrity').textContent = `${selfRecheckBlocked} self-check${selfRecheckBlocked === 1 ? '' : 's'} blocked`;
@@ -33,7 +35,7 @@ function button(label, action) {
     try {
       const at = Date.now();
       const event = { ...action, actor: $('#actor').value };
-      if (isSelfRecheckAttempt(state, event)) { selfRecheckBlocked++; renderIntegrity(); }
+      if (isSelfRecheckAttempt(state, event)) { selfRecheckBlocked++; renderIntegrity(); save(); }
       state = { ...applyAction(state, event, at), startedAt: state.startedAt, actions: [...state.actions, { action: event, at }] };
       resetPreview();
       save(); render();
@@ -162,10 +164,12 @@ async function init() {
       let replay = createState(dataset, saved.startedAt);
       for (const item of saved.actions) replay = applyAction(replay, item.action, item.at);
       state = { ...replay, startedAt: saved.startedAt, actions: saved.actions };
+      selfRecheckBlocked = Number.isFinite(saved.selfRecheckBlocked) && saved.selfRecheckBlocked >= 0
+        ? Math.floor(saved.selfRecheckBlocked) : 0;
     }
-  } catch { fresh(); $('#feedback').textContent = "Couldn't restore your saved demo, so here's a fresh one."; }
+  } catch { fresh(); selfRecheckBlocked = 0; $('#feedback').textContent = "Couldn't restore your saved demo, so here's a fresh one."; }
   $('#actor').addEventListener('change', () => { $('#feedback').textContent = `Demo actor changed to ${$('#actor').selectedOptions[0].textContent}.`; });
-  $('#reset').addEventListener('click', () => { fresh(); resetPreview(); save(); render(); $('#feedback').textContent = 'Synthetic demo reset.'; });
+  $('#reset').addEventListener('click', () => { fresh(); selfRecheckBlocked = 0; renderIntegrity(); resetPreview(); save(); render(); $('#feedback').textContent = 'Synthetic demo reset.'; });
   $('#print').addEventListener('click', () => window.print());
   $('#speak').addEventListener('click', speakSummary);
   $('#auditTrail').addEventListener('click', downloadAuditTrail);
