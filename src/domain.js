@@ -20,6 +20,7 @@ export function segmentStatus(segment, now = Date.now()) {
   if (segment.claim) return 'pending';
   if (segment.status === 'blocked') return 'blocked';
   if (segment.status !== 'clear') return 'unknown';
+  if (!Number.isFinite(now)) throw new Error('Invalid observation time.');
   if (!Number.isFinite(segment.expiresAt) || now >= segment.expiresAt) return 'stale';
   return 'clear';
 }
@@ -49,8 +50,9 @@ export function applyAction(state, action, now = Date.now()) {
       segment.claim = { actor: action.actor, at: now };
       break;
     case 'recheck':
+      if (action.actor !== 'reviewer') throw new Error('Use the independent reviewer demo actor to recheck a repair.');
       if (!segment.claim) throw new Error('There is no repair claim to recheck.');
-      if (action.actor === segment.claim.actor || action.actor !== 'reviewer') throw new Error('A different reviewer must check the repair.');
+      if (action.actor === segment.claim.actor) throw new Error('A different reviewer must check the repair.');
       if (typeof action.passed !== 'boolean') throw new Error('Recheck result must be explicit.');
       segment.status = action.passed ? 'clear' : 'blocked';
       segment.claim = null;
@@ -87,7 +89,9 @@ export function campusPriority(journeys, state, now = Date.now()) {
 
 export const OVERDUE_HOURS = 4;
 export function isOverdue(segment, now = Date.now()) {
-  return Boolean(segment.claim) && now - segment.claim.at > OVERDUE_HOURS * 3600000;
+  if (!segment?.claim) return false;
+  if (!Number.isFinite(now)) throw new Error('Invalid observation time.');
+  return now - segment.claim.at > OVERDUE_HOURS * 3600000;
 }
 
 const SMS_COMMANDS = { BLOCKED: 'report', CLEAR: 'observe' };

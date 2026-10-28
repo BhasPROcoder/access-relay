@@ -68,6 +68,25 @@ test('a recheck attempt by the same actor who claimed the repair is flagged as a
   assert.equal(isSelfRecheckAttempt(createState(data, now), { type: 'recheck', segmentId: 'library-ramp', actor: 'staff' }), false);
   assert.equal(isSelfRecheckAttempt(claimed, { type: 'report', segmentId: 'library-ramp', actor: 'staff' }), false);
 });
+test('a recheck rejection names the actual reason: wrong actor type versus same actor as claimant', () => {
+  const claimed = applyAction(createState(data, now), { type: 'claim', segmentId: 'library-ramp', actor: 'staff' }, now);
+  assert.throws(() => applyAction(claimed, { type: 'recheck', segmentId: 'library-ramp', actor: 'reporter', passed: true }, now), /independent reviewer/i);
+  assert.throws(() => applyAction(claimed, { type: 'recheck', segmentId: 'library-ramp', actor: 'staff', passed: true }, now), /independent reviewer/i);
+  assert.throws(() => applyAction(createState(data, now), { type: 'recheck', segmentId: 'library-ramp', actor: 'reviewer', passed: true }, now), /no repair claim/i);
+});
+test('isOverdue tolerates a missing segment instead of crashing', () => {
+  assert.equal(isOverdue(null, now), false);
+  assert.equal(isOverdue(undefined, now), false);
+});
+test('a non-finite preview time fails loudly instead of silently producing a wrong status', () => {
+  const state = createState(data, now);
+  assert.throws(() => segmentStatus(state.segments['admin-lift'], NaN), /invalid observation time/i);
+  assert.throws(() => segmentStatus(state.segments['admin-lift'], Infinity), /invalid observation time/i);
+  assert.equal(segmentStatus(state.segments['library-ramp'], NaN), 'blocked');
+  const claimed = applyAction(state, { type: 'claim', segmentId: 'library-ramp', actor: 'staff' }, now);
+  assert.equal(segmentStatus(claimed.segments['library-ramp'], NaN), 'pending');
+  assert.throws(() => isOverdue(claimed.segments['library-ramp'], NaN), /invalid observation time/i);
+});
 test('an overdue claim drafts a real escalation message naming who to chase and why', () => {
   const claimed = applyAction(createState(data, now), { type: 'claim', segmentId: 'library-ramp', actor: 'staff' }, now);
   assert.equal(draftEscalationMessage(claimed.segments['library-ramp'], data.journeys, now), null);
