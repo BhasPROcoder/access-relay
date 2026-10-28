@@ -15,10 +15,12 @@
 *{box-sizing:border-box}
 body{margin:0}
 header,footer{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1.3rem 5%;border-bottom:1px solid var(--line)}
+header{flex-wrap:wrap}
 footer{border-top:1px solid var(--line);border-bottom:0;font-size:.82rem;color:var(--ink-soft)}
 .brand{color:inherit;text-decoration:none;font-weight:700;font-size:1.4rem;letter-spacing:-.01em}
 .edition,.eyebrow{font-size:.72rem;letter-spacing:.14em;font-weight:700;text-transform:uppercase;color:var(--accent-ink);background:var(--accent-soft);padding:.25rem .6rem;border-radius:999px}
-#connection{font-size:.8rem;color:var(--ink-soft)}
+.edition{white-space:nowrap}
+#connection{font-size:.8rem;color:var(--ink-soft);white-space:nowrap}
 .pill{font-size:.72rem;font-weight:700;color:var(--warn-ink);background:var(--warn-bg);padding:.3rem .7rem;border-radius:999px;white-space:nowrap}
 main{max-width:1240px;margin:auto;padding:0 2rem}
 .hero{padding:4rem 0 2.5rem;max-width:760px;position:relative}
@@ -91,5 +93,5 @@ html.comfort .segment{animation:none}
 html.comfort button,html.comfort .journey-option{transition:none}
 @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){.segment{animation:none}button,.journey-option{transition:none}}
-@media(max-width:760px){main{padding:0 1rem}.workspace{grid-template-columns:1fr;gap:1rem}.hero{padding-top:2.5rem}.hero::before{display:none}.edition{display:none}.help{display:none}.toolbar{align-items:flex-start;flex-direction:column}.sidebar nav{display:grid;gap:.5rem}.journey-option{margin:0}header{flex-wrap:wrap}}
+@media(max-width:760px){main{padding:0 1rem}.workspace{grid-template-columns:1fr;gap:1rem}.hero{padding-top:2.5rem}.hero::before{display:none}.edition{display:none}.help{display:none}.toolbar{align-items:flex-start;flex-direction:column}.sidebar nav{display:grid;gap:.5rem}.journey-option{margin:0}}
 @media print{header,.sidebar,.toolbar,.time-control,.priority,.actions,footer,.activity,.sms-bridge,.escalation,.skip{display:none}.hero::before{display:none}.workspace{display:block}main{padding:0}.hero{padding:1rem 0}h1{font-size:2rem}.segment{break-inside:avoid;animation:none;box-shadow:none;border:1px solid #ccc}.notice{border:2px solid #222;box-shadow:none}.badge{border:1px solid #555}#feedback{display:none}}
