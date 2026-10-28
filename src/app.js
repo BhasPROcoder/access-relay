@@ -29,6 +29,14 @@ function save() {
 function renderIntegrity() {
   $('#integrity').textContent = `${selfRecheckBlocked} self-check${selfRecheckBlocked === 1 ? '' : 's'} blocked`;
 }
+function focusSegment(segmentId) {
+  const item = [...document.querySelectorAll('#segments .segment')].find(el => el.dataset.segmentId === segmentId);
+  (item?.querySelector('button') ?? $('#journey')).focus();
+}
+function focusJourney(journeyId) {
+  const option = [...document.querySelectorAll('#journeys .journey-option')].find(el => el.dataset.journeyId === journeyId);
+  (option ?? $('#journey')).focus();
+}
 function button(label, action) {
   const node = element('button', label);
   node.addEventListener('click', () => {
@@ -40,7 +48,7 @@ function button(label, action) {
       resetPreview();
       save(); render();
       $('#feedback').textContent = storageAvailable ? 'Demo updated. See the new status and activity below.' : "Demo updated in memory only. Your browser won't save it this time.";
-      $('#journey').focus();
+      focusSegment(action.segmentId);
     } catch (error) { $('#feedback').textContent = error.message; }
   });
   return node;
@@ -68,7 +76,8 @@ function render() {
     const node = element('button', undefined, 'journey-option');
     node.append(element('strong', j.name), element('span', LABELS[journeyStatus(j, state, now)], 'small'));
     node.setAttribute('aria-pressed', String(selected === j.id));
-    node.addEventListener('click', () => { selected = j.id; $('#feedback').textContent = ''; render(); });
+    node.dataset.journeyId = j.id;
+    node.addEventListener('click', () => { selected = j.id; $('#feedback').textContent = ''; render(); focusJourney(j.id); });
     return node;
   }));
   const status = journeyStatus(journey, state, now);
@@ -77,6 +86,7 @@ function render() {
   $('#segments').replaceChildren(...journey.segments.map((id, index) => {
     const segment = state.segments[id], status = segmentStatus(segment, now);
     const item = element('li', undefined, 'segment');
+    item.dataset.segmentId = id;
     item.style.setProperty('--i', index);
     const heading = element('div', undefined, 'segment-heading');
     heading.append(element('span', String(index + 1).padStart(2, '0'), 'step'), element('h3', segment.name), element('span', LABELS[status], `badge ${status}`));
